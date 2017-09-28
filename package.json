@@ -1,0 +1,29 @@
+{
+  "name": "react-ken-burns-video",
+  "version": "1.0.0",
+  "description": "React component used to create, edit, and save a video of a Ken Burns effect on a photo of your choice.",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryanscottaudio/ken-burns-video.git"
+  },
+  "keywords": [
+    "ken",
+    "burns",
+    "effect",
+    "video",
+    "react",
+    "image",
+    "node",
+    "javascript"
+  ],
+  "author": "Ryan Campbell",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ryanscottaudio/ken-burns-video/issues"
+  },
+  "homepage": "https://github.com/ryanscottaudio/ken-burns-video#readme"
+}
