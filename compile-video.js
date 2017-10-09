@@ -17,7 +17,7 @@ const getFrame = corners => [
   corners[2][1] - corners[1][1],
 ];
 
-export default ({ duration = 3, framerate = 60, width, height, imageSrc, start, end }, cb) => {
+export default ({ duration, framerate = 60, width, height, imageSrc, start, end }, cb) => {
   const totalFrames = duration * framerate;
   assert(totalFrames > 1, 'total number of frames in video must be more than 1');
 
@@ -49,7 +49,7 @@ export default ({ duration = 3, framerate = 60, width, height, imageSrc, start, 
       ];
 
       const frame = getFrame(cornersArray.map(getFrameCorner));
-      ctx.drawImage(image, ...frame, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(image, ...frame, 0, 0, width, height);
       frames.push(canvas.toDataURL('image/webp'));
     }
 

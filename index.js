@@ -68,9 +68,11 @@ class Component extends React.Component {
   }
 
   save(cb) {
-    const { props: { imageSrc, width, height }, state: { start, end } } = this;
+    const { props: { duration, framerate, imageSrc, width, height }, state: { start, end } } = this;
 
     compileVideo({
+      duration,
+      framerate,
       imageSrc,
       width,
       height,
@@ -128,9 +130,11 @@ class Component extends React.Component {
 }
 
 Component.propTypes = {
-  imageSrc: PropTypes.string,
-  width: PropTypes.number,
-  height: PropTypes.number,
+  imageSrc: PropTypes.string.isRequired,
+  width: PropTypes.number.isRequired,
+  height: PropTypes.number.isRequired,
+  duration: PropTypes.number.isRequired,
+  framerate: PropTypes.number,
 };
 
 export default Component;

@@ -45,6 +45,8 @@ class Wrapper extends React.Component {
     return (
       <div>
         <Component
+          duration={5}
+          framerate={60}
           width={width}
           height={height}
           imageSrc={imageSrc}
@@ -67,7 +69,7 @@ class Wrapper extends React.Component {
         <button
           onClick={() => this.component.save(file => onVideoSave(file))}
         >
-          Save video
+          Render video
         </button>
         {videoSrc && <video loop={true} autoPlay={true} controls={true} src={videoSrc} />}
       </div>
