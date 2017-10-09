@@ -2,9 +2,16 @@
   "name": "react-ken-burns-video",
   "version": "1.0.0",
   "description": "React component used to create, edit, and save a video of a Ken Burns effect on a photo of your choice.",
-  "main": "dist/index.js",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.esm.js",
   "scripts": {
-    "test": "test"
+    "build": "rollup -c rollup-config.js",
+    "build:dev": "rollup -c dev/rollup-config.js -w",
+    "prepublishOnly": "npm run build",
+    "start": "browser-sync start -s --index 'dev/html/index.html' -f 'dev/dist/**/*.js' --no-notify -b 'google chrome'",
+    "dev": "run-p build:dev start",
+    "lint": "miclint | snazzy",
+    "test": "npm run build:dev"
   },
   "repository": {
     "type": "git",
@@ -25,5 +32,36 @@
   "bugs": {
     "url": "https://github.com/ryanscottaudio/ken-burns-video/issues"
   },
-  "homepage": "https://github.com/ryanscottaudio/ken-burns-video#readme"
+  "homepage": "https://github.com/ryanscottaudio/ken-burns-video#readme",
+  "engines": {
+    "npm": ">=3.0.0",
+    "node": ">=6.0.0"
+  },
+  "dependencies": {
+    "aphrodite": "^1.2.4",
+    "assert": "^1.4.1",
+    "install": "^0.10.1",
+    "npm": "^5.4.2",
+    "prop-types": "^15.6.0",
+    "react": "15.6.1",
+    "react-rnd": "^7.1.4",
+    "whammy": "0.0.1"
+  },
+  "devDependencies": {
+    "browser-sync": "2.18.13",
+    "js-file-download": "^0.4.1",
+    "miclint": "^4.2.2",
+    "npm-run-all": "4.1.1",
+    "react-dom": "15.6.1",
+    "rollup": "0.50.0",
+    "rollup-plugin-buble": "0.15.0",
+    "rollup-plugin-commonjs": "8.2.1",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-globals": "1.1.0",
+    "rollup-plugin-node-resolve": "3.0.0",
+    "rollup-plugin-replace": "2.0.0",
+    "rollup-plugin-uglify": "2.0.1",
+    "rollup-watch": "4.3.1",
+    "snazzy": "6.0.0"
+  }
 }
