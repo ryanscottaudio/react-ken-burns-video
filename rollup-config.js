@@ -50,6 +50,14 @@ export default {
         'node_modules/react-dom/index.js': [
           'findDOMNode',
         ],
+        'node_modules/aphrodite/no-important.js': [
+          'StyleSheet',
+          'css',
+        ],
+        'node_modules/aphrodite/lib/no-important.js': [
+          'StyleSheet',
+          'css',
+        ],
         'node_modules/aphrodite/lib/index.js': [
           'StyleSheet',
           'css',

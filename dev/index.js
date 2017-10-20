@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import fileDownload from 'js-file-download';
 import Component from '../index';
 
 class Wrapper extends React.Component {
@@ -8,24 +7,26 @@ class Wrapper extends React.Component {
     super(props);
 
     this.state = {
-      width: 160,
-      height: 90,
       imageSrc: 'http://images.mic.com/n7hfx8ikxoku56qwesfuabwj1dgb6tlqav4wjkz7oi4zf6lrgvuxucgcz25c4nfp.jpg',
+      duration: 5,
+      framerate: 60,
+      width: 320,
+      height: 180,
     };
-    this.onChangeWidth = this.onChangeWidth.bind(this);
-    this.onChangeHeight = this.onChangeHeight.bind(this);
-    this.onVideoSave = this.onVideoSave.bind(this);
+    this.onChangeImageSrc = this.onChangeImageSrc.bind(this);
+    this.onChangeNumberProp = this.onChangeNumberProp.bind(this);
+    this.onVideoRender = this.onVideoRender.bind(this);
   }
 
-  onChangeWidth({ target: { value } }) {
-    this.setState({ width: Number(value) });
+  onChangeImageSrc({ target: { value } }) {
+    this.setState({ imageSrc: value });
   }
 
-  onChangeHeight({ target: { value } }) {
-    this.setState({ height: Number(value) });
+  onChangeNumberProp(prop) {
+    return ({ target: { value } }) => this.setState({ [prop]: Number(value) });
   }
 
-  onVideoSave(file) {
+  onVideoRender(file) {
     this.setState({ videoSrc: (window.URL || window.webkitURL).createObjectURL(file) });
   }
 
@@ -34,40 +35,64 @@ class Wrapper extends React.Component {
       state: {
         imageSrc,
         videoSrc,
+        duration,
+        framerate,
         width,
         height,
       },
-      onChangeWidth,
-      onChangeHeight,
-      onVideoSave,
+      onChangeImageSrc,
+      onChangeNumberProp,
+      onVideoRender,
     } = this;
 
     return (
       <div>
         <Component
-          duration={5}
-          framerate={60}
+          duration={duration}
+          framerate={framerate}
           width={width}
           height={height}
           imageSrc={imageSrc}
           ref={node => (this.component = node)}
         />
         <div>
+          Image source
+          <input
+            type='text'
+            value={imageSrc}
+            onChange={onChangeImageSrc}
+          />
+        </div>
+        <div>
+          Duration
+          <input
+            type='number'
+            value={duration}
+            onChange={onChangeNumberProp('duration')}
+          />
+          Framerate
+          <input
+            type='number'
+            value={framerate}
+            onChange={onChangeNumberProp('framerate')}
+          />
+        </div>
+        <div>
           Width
           <input
             type='number'
             value={width}
-            onChange={onChangeWidth}
+            onChange={onChangeNumberProp('width')}
           />
           Height
           <input
             type='number'
             value={height}
-            onChange={onChangeHeight}
+            onChange={onChangeNumberProp('height')}
           />
         </div>
         <button
-          onClick={() => this.component.save(file => onVideoSave(file))}
+          onClick={() => this.component.renderVideo(onVideoRender)}
         >
           Render video
         </button>

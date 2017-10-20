@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, css } from 'aphrodite';
+import { StyleSheet, css } from 'aphrodite/no-important';
 import compileVideo from './compile-video';
 import Box from './components/box';
 
@@ -22,6 +22,9 @@ const startingArea = 10000;
 
 const styles = StyleSheet.create({
   container: {
+    display: 'flex',
+  },
+  imageContainer: {
     display: 'inline-flex',
     position: 'relative',
     border: '1px solid black',
@@ -36,16 +39,49 @@ class Component extends React.Component {
       start: {
         position: startingPosition,
         area: startingArea,
+        isDrawn: false,
       },
       end: {
         position: startingPosition,
         area: startingArea,
+        isDrawn: false,
       },
+      imageLoaded: false,
+      renderingVideo: false,
     };
+    this.previewCanvases = {};
 
     this.setState = this.setState.bind(this);
+    this.drawPreviews = this.drawPreviews.bind(this);
     this.onBoxDrag = this.onBoxDrag.bind(this);
     this.onBoxResize = this.onBoxResize.bind(this);
+  }
+
+  componentDidMount() {
+    const { setState, imageElement } = this;
+
+    imageElement.onload = () => {
+      setState({ imageLoaded: true });
+    };
+  }
+
+  componentDidUpdate({ imageSrc: oldImageSrc }) {
+    const {
+      props: { imageSrc },
+      state: { imageLoaded, renderingVideo },
+      setState,
+      drawPreviews,
+      imageElement,
+    } = this;
+
+    if (imageSrc !== oldImageSrc) {
+      setState({ imageLoaded: false });
+      imageElement.onload = () => {
+        setState({ imageLoaded: true });
+      };
+    } else if (imageLoaded && !renderingVideo) {
+      drawPreviews();
+    }
   }
 
   onBoxDrag(order, position) {
@@ -54,6 +90,7 @@ class Component extends React.Component {
     setState({ [order]: {
       ...state[order],
       position,
+      isDrawn: false,
     } });
   }
 
@@ -64,11 +101,36 @@ class Component extends React.Component {
       ...state[order],
       area: width * height,
       position,
+      isDrawn: false,
     } });
   }
 
-  save(cb) {
+  drawPreviews() {
+    const {
+      props: {
+        width,
+        height,
+      },
+      state,
+      imageElement,
+      previewCanvases,
+    } = this;
+
+    ['start', 'end'].forEach((order) => {
+      const canvas = previewCanvases[order];
+
+      const { position: { x, y }, area } = state[order];
+      const { height: boxHeight, width: boxWidth } = getSize({ area, aspectRatio: width / height });
+      canvas
+        .getContext('2d')
+        .drawImage(imageElement, x, y, boxWidth, boxHeight, 0, 0, canvas.width, canvas.height);
+    });
+  }
+
+  renderVideo(cb) {
     const { props: { duration, framerate, imageSrc, width, height }, state: { start, end } } = this;
+
+    this.setState({ renderingVideo: true, renderedVideoPercentage: 0 });
 
     compileVideo({
       duration,
@@ -84,7 +146,12 @@ class Component extends React.Component {
         ...end.position,
         ...getSize({ area: end.area, aspectRatio: width / height }),
       },
-    }, cb);
+    }, (file) => {
+      this.setState({ renderingVideo: false });
+      cb(file);
+    }, (percentDone) => {
+      this.setState({ renderedVideoPercentage: percentDone });
+    });
   }
 
   render() {
@@ -99,12 +166,26 @@ class Component extends React.Component {
       onBoxDrag,
     } = this;
 
+    if (state.renderingVideo) {
+      // TODO: Add more graceful rendering indicator
+      console.log(state.renderedVideoPercentage);
+      return <div>{`Rendering video: ${state.renderedVideoPercentage}% done`}</div>;
+    }
+
+    const inRenderStyles = StyleSheet.create({
+      previewCanvas: {
+        width,
+        height,
+      },
+    });
+
     return (
-      <div>
-        <div className={css(styles.container)}>
+      <div className={css(styles.container)}>
+        <div className={css(styles.imageContainer)}>
           <img
             src={imageSrc}
             role='presentation'
+            ref={node => (this.imageElement = node)}
           />
           {['start', 'end'].map((order) => {
             const { area, position } = state[order];
@@ -123,6 +204,19 @@ class Component extends React.Component {
               />
             );
           })}
+        </div>
+        <div>
+          {['start', 'end'].map(order => (
+            <div key={order}>
+              <div>
+                {order === 'start' ? 'Start' : 'End'}
+              </div>
+              {state.imageLoaded ? <canvas
+                className={css(inRenderStyles.previewCanvas)}
+                ref={node => (this.previewCanvases[order] = node)}
+              /> : 'Loading image'}
+            </div>
+          ))}
         </div>
       </div>
     );
