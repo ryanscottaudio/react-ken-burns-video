@@ -167,7 +167,7 @@ class Component extends React.Component {
 
     if (renderingVideo) {
       if (sync) {
-        return (loadingIndicator || <div>Rendering synchronously...</div>);
+        return (loadingIndicator() || <div>Rendering synchronously...</div>);
       }
 
       return loadingIndicator
@@ -234,7 +234,7 @@ Component.propTypes = {
   duration: PropTypes.number.isRequired,
   framerate: PropTypes.number,
   sync: PropTypes.bool,
-  loadingIndicator: PropTypes.node,
+  loadingIndicator: PropTypes.func,
 };
 
 export default Component;
