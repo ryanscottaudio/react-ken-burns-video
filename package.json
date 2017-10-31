@@ -1,6 +1,6 @@
 {
   "name": "react-ken-burns-video",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "React component used to create, edit, and save a video of a Ken Burns effect on a photo of your choice.",
   "main": "dist/index.umd.js",
   "module": "dist/index.esm.js",
