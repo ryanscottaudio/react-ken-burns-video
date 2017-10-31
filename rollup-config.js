@@ -30,7 +30,6 @@ export default {
         'node_modules/prop-types/**',
         'node_modules/react-rnd/**',
         'node_modules/react-draggable/**',
-        'node_modules/aphrodite/**',
         'node_modules/inline-style-prefixer/**',
         'node_modules/css-in-js-utils/**',
         'node_modules/string-hash/**',
@@ -49,18 +48,6 @@ export default {
         ],
         'node_modules/react-dom/index.js': [
           'findDOMNode',
-        ],
-        'node_modules/aphrodite/no-important.js': [
-          'StyleSheet',
-          'css',
-        ],
-        'node_modules/aphrodite/lib/no-important.js': [
-          'StyleSheet',
-          'css',
-        ],
-        'node_modules/aphrodite/lib/index.js': [
-          'StyleSheet',
-          'css',
         ],
         'node_modules/whammy/whammy.js': [
           'fromImageArray',

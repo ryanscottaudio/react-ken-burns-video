@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, css } from 'aphrodite/no-important';
 import compileVideo from './compile-video';
 import Box from './components/box';
 
@@ -19,17 +18,6 @@ const startingPosition = {
 };
 
 const startingArea = 10000;
-
-const styles = StyleSheet.create({
-  container: {
-    display: 'flex',
-  },
-  imageContainer: {
-    display: 'inline-flex',
-    position: 'relative',
-    border: '1px solid black',
-  },
-});
 
 class Component extends React.Component {
   constructor(props) {
@@ -172,16 +160,9 @@ class Component extends React.Component {
       return <div>{`Rendering video: ${state.renderedVideoPercentage}% done`}</div>;
     }
 
-    const inRenderStyles = StyleSheet.create({
-      previewCanvas: {
-        width,
-        height,
-      },
-    });
-
     return (
-      <div className={css(styles.container)}>
-        <div className={css(styles.imageContainer)}>
+      <div style={{ display: 'flex' }}>
+        <div style={{ display: 'inline-flex', position: 'relative', border: '1px solid black' }}>
           <img
             src={imageSrc}
             role='presentation'
@@ -212,7 +193,7 @@ class Component extends React.Component {
                 {order === 'start' ? 'Start' : 'End'}
               </div>
               {state.imageLoaded ? <canvas
-                className={css(inRenderStyles.previewCanvas)}
+                style={{ width, height }}
                 ref={node => (this.previewCanvases[order] = node)}
               /> : 'Loading image'}
             </div>
