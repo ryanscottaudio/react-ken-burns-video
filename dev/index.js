@@ -1,3 +1,5 @@
+/* eslint-disable import/no-extraneous-dependencies */
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Component from '../index';
@@ -12,10 +14,16 @@ class Wrapper extends React.Component {
       framerate: 60,
       width: 320,
       height: 180,
+      sync: false,
     };
+    this.onChangeChecked = this.onChangeChecked.bind(this);
     this.onChangeImageSrc = this.onChangeImageSrc.bind(this);
     this.onChangeNumberProp = this.onChangeNumberProp.bind(this);
     this.onVideoRender = this.onVideoRender.bind(this);
+  }
+
+  onChangeChecked(prop) {
+    return ({ target: { checked } }) => this.setState({ [prop]: checked });
   }
 
   onChangeImageSrc({ target: { value } }) {
@@ -39,7 +47,9 @@ class Wrapper extends React.Component {
         framerate,
         width,
         height,
+        sync,
       },
+      onChangeChecked,
       onChangeImageSrc,
       onChangeNumberProp,
       onVideoRender,
@@ -54,6 +64,7 @@ class Wrapper extends React.Component {
           height={height}
           imageSrc={imageSrc}
           ref={node => (this.component = node)}
+          sync={sync}
         />
         <div>
           Image source
@@ -91,11 +102,19 @@ class Wrapper extends React.Component {
             onChange={onChangeNumberProp('height')}
           />
         </div>
-        <button
-          onClick={() => this.component.renderVideo(onVideoRender)}
-        >
-          Render video
-        </button>
+        <div>
+          Render video synchronously
+          <input
+            type='checkbox'
+            value={sync}
+            onChange={onChangeChecked('sync')}
+          />
+          <button
+            onClick={() => this.component.renderVideo(onVideoRender)}
+          >
+            Render video
+          </button>
+        </div>
         {videoSrc && <video loop={true} autoPlay={true} controls={true} src={videoSrc} />}
       </div>
     );

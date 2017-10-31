@@ -1,4 +1,5 @@
-// Rollup plugins.
+/* eslint-disable import/no-extraneous-dependencies */
+
 import buble from 'rollup-plugin-buble';
 import cjs from 'rollup-plugin-commonjs';
 import globals from 'rollup-plugin-node-globals';

@@ -11,7 +11,7 @@
     "start": "browser-sync start -s --index 'dev/html/index.html' -f 'dev/dist/**/*.js' --no-notify -b 'google chrome'",
     "dev": "run-p build:dev start",
     "lint": "miclint | snazzy",
-    "test": "npm run build:dev"
+    "test": "npm run lint"
   },
   "repository": {
     "type": "git",

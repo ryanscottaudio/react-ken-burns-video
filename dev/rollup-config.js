@@ -1,3 +1,5 @@
+/* eslint-disable import/no-extraneous-dependencies */
+
 import replace from 'rollup-plugin-replace';
 import config from '../rollup-config';
 

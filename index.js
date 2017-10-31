@@ -116,9 +116,13 @@ class Component extends React.Component {
   }
 
   renderVideo(cb) {
-    const { props: { duration, framerate, imageSrc, width, height }, state: { start, end } } = this;
+    const {
+      props: { duration, framerate, imageSrc, width, height, sync },
+      state: { start, end },
+      setState,
+    } = this;
 
-    this.setState({ renderingVideo: true, renderedVideoPercentage: 0 });
+    setState({ renderingVideo: true, renderedVideoPercentage: 0 });
 
     compileVideo({
       duration,
@@ -134,11 +138,14 @@ class Component extends React.Component {
         ...end.position,
         ...getSize({ area: end.area, aspectRatio: width / height }),
       },
-    }, (file) => {
-      this.setState({ renderingVideo: false });
-      cb(file);
-    }, (percentDone) => {
-      this.setState({ renderedVideoPercentage: percentDone });
+      sync,
+      onProgress: (percentDone) => {
+        setState({ renderedVideoPercentage: percentDone });
+      },
+      onDone: (file) => {
+        setState({ renderingVideo: false });
+        cb(file);
+      },
     });
   }
 
@@ -156,7 +163,6 @@ class Component extends React.Component {
 
     if (state.renderingVideo) {
       // TODO: Add more graceful rendering indicator
-      console.log(state.renderedVideoPercentage);
       return <div>{`Rendering video: ${state.renderedVideoPercentage}% done`}</div>;
     }
 
@@ -210,6 +216,7 @@ Component.propTypes = {
   height: PropTypes.number.isRequired,
   duration: PropTypes.number.isRequired,
   framerate: PropTypes.number,
+  sync: PropTypes.bool,
 };
 
 export default Component;

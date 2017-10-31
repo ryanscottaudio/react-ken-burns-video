@@ -20,12 +20,15 @@ const getFrame = corners => [
 export default ({
   duration,
   framerate = 60,
+  sync,
   width,
   height,
   imageSrc,
   start,
   end,
-}, cb, processCb = () => {}) => {
+  onProgress,
+  onDone,
+}) => {
   const totalFrames = duration * framerate;
   assert(totalFrames > 1, 'total number of frames in video must be more than 1');
 
@@ -46,25 +49,45 @@ export default ({
 
   const image = document.createElement('img');
 
+  const frames = [];
+
+  const analyzeFrame = (i) => {
+    const coefficient = i / (totalFrames - 1);
+
+    const getFrameCorner = cornerIdx => [
+      startCorners[cornerIdx][0] + (coefficient * differences[cornerIdx][0]),
+      startCorners[cornerIdx][1] + (coefficient * differences[cornerIdx][1]),
+    ];
+
+    const frame = getFrame(cornersArray.map(getFrameCorner));
+    ctx.drawImage(image, ...frame, 0, 0, width, height);
+    const dataURL = canvas.toDataURL('image/webp');
+    frames.push(dataURL);
+
+    const percentage = Math.round(((i + 1) / totalFrames) * 100);
+    onProgress(percentage);
+  };
+
   image.onload = () => {
-    const frames = [];
-    for (let i = 0; i < totalFrames; i += 1) {
-      const coefficient = i / (totalFrames - 1);
+    if (sync) {
+      for (let i = 0; i < totalFrames; i += 1) {
+        analyzeFrame(i);
+      }
 
-      const getFrameCorner = cornerIdx => [
-        startCorners[cornerIdx][0] + (coefficient * differences[cornerIdx][0]),
-        startCorners[cornerIdx][1] + (coefficient * differences[cornerIdx][1]),
-      ];
-
-      const frame = getFrame(cornersArray.map(getFrameCorner));
-      ctx.drawImage(image, ...frame, 0, 0, width, height);
-      const dataURL = canvas.toDataURL('image/webp');
-      frames.push(dataURL);
-
-      processCb(((i + 1) / totalFrames) * 100);
+      onDone(fromImageArray(frames, framerate));
+    } else {
+      let currentFrame = 0;
+      const asyncAnalyzeFrame = () => {
+        analyzeFrame(currentFrame);
+        currentFrame += 1;
+        if (currentFrame === totalFrames) {
+          onDone(fromImageArray(frames, framerate));
+        } else {
+          requestAnimationFrame(asyncAnalyzeFrame);
+        }
+      };
+      requestAnimationFrame(asyncAnalyzeFrame);
     }
-
-    cb(fromImageArray(frames, framerate));
   };
 
   image.crossOrigin = 'anonymous';
