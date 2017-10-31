@@ -122,7 +122,7 @@ class Component extends React.Component {
       setState,
     } = this;
 
-    setState({ renderingVideo: true, renderedVideoPercentage: 0 });
+    setState({ renderingVideo: true, renderedVideoProgress: 0 });
 
     compileVideo({
       duration,
@@ -139,8 +139,8 @@ class Component extends React.Component {
         ...getSize({ area: end.area, aspectRatio: width / height }),
       },
       sync,
-      onProgress: (percentDone) => {
-        setState({ renderedVideoPercentage: percentDone });
+      onProgress: (progress) => {
+        setState({ renderedVideoProgress: progress });
       },
       onDone: (file) => {
         setState({ renderingVideo: false });
@@ -155,15 +155,32 @@ class Component extends React.Component {
         imageSrc,
         width,
         height,
+        sync,
+        loadingIndicator,
       },
       state,
       onBoxResize,
       onBoxDrag,
     } = this;
 
-    if (state.renderingVideo) {
-      // TODO: Add more graceful rendering indicator
-      return <div>{`Rendering video: ${state.renderedVideoPercentage}% done`}</div>;
+    const { imageLoaded, renderingVideo, renderedVideoProgress } = state;
+
+    if (renderingVideo) {
+      if (sync) {
+        return (loadingIndicator || <div>Rendering synchronously...</div>);
+      }
+
+      return loadingIndicator
+        ? loadingIndicator(renderedVideoProgress)
+        : (<div style={{ height: 20, width: '100%' }}>
+          <div
+            style={{
+              backgroundColor: 'black',
+              height: '100%',
+              width: `${renderedVideoProgress * 100}%`,
+            }}
+          />
+        </div>);
     }
 
     return (
@@ -198,7 +215,7 @@ class Component extends React.Component {
               <div>
                 {order === 'start' ? 'Start' : 'End'}
               </div>
-              {state.imageLoaded ? <canvas
+              {imageLoaded ? <canvas
                 style={{ width, height }}
                 ref={node => (this.previewCanvases[order] = node)}
               /> : 'Loading image'}
@@ -217,6 +234,7 @@ Component.propTypes = {
   duration: PropTypes.number.isRequired,
   framerate: PropTypes.number,
   sync: PropTypes.bool,
+  loadingIndicator: PropTypes.node,
 };
 
 export default Component;

@@ -64,8 +64,8 @@ export default ({
     const dataURL = canvas.toDataURL('image/webp');
     frames.push(dataURL);
 
-    const percentage = Math.round(((i + 1) / totalFrames) * 100);
-    onProgress(percentage);
+    const progress = (i + 1) / totalFrames;
+    onProgress(progress);
   };
 
   image.onload = () => {
