@@ -69,23 +69,26 @@ export default ({
   };
 
   image.onload = () => {
+    let currentFrame = 0;
+
     if (sync) {
-      for (let i = 0; i < totalFrames; i += 1) {
-        analyzeFrame(i);
+      for (currentFrame; currentFrame < totalFrames; currentFrame += 1) {
+        analyzeFrame(currentFrame);
       }
 
       onDone(fromImageArray(frames, framerate));
     } else {
-      let currentFrame = 0;
       const asyncAnalyzeFrame = () => {
         analyzeFrame(currentFrame);
         currentFrame += 1;
+
         if (currentFrame === totalFrames) {
           onDone(fromImageArray(frames, framerate));
         } else {
           requestAnimationFrame(asyncAnalyzeFrame);
         }
       };
+
       requestAnimationFrame(asyncAnalyzeFrame);
     }
   };
