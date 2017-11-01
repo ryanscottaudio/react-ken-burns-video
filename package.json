@@ -6,6 +6,7 @@
   "scripts": {
     "build": "rollup -c rollup-config.js",
     "build:dev": "rollup -c dev/rollup-config.js -w",
+    "watch": "rollup -c rollup-config.js -w",
     "prepublishOnly": "npm run build",
     "start": "browser-sync start -s --index 'dev/html/index.html' -f 'dev/dist/**/*.js' --no-notify -b 'google chrome'",
     "dev": "run-p build:dev start",

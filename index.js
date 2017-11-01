@@ -156,7 +156,7 @@ class Component extends React.Component {
         width,
         height,
         sync,
-        loadingIndicator,
+        progressIndicator,
       },
       state,
       onBoxResize,
@@ -167,11 +167,11 @@ class Component extends React.Component {
 
     if (renderingVideo) {
       if (sync) {
-        return (loadingIndicator() || <div>Rendering synchronously...</div>);
+        return (progressIndicator ? progressIndicator() : <div>Rendering synchronously...</div>);
       }
 
-      return loadingIndicator
-        ? loadingIndicator(renderedVideoProgress)
+      return progressIndicator
+        ? progressIndicator(renderedVideoProgress)
         : (<div style={{ height: 20, width: '100%' }}>
           <div
             style={{
@@ -234,7 +234,7 @@ Component.propTypes = {
   duration: PropTypes.number.isRequired,
   framerate: PropTypes.number,
   sync: PropTypes.bool,
-  loadingIndicator: PropTypes.func,
+  progressIndicator: PropTypes.func,
 };
 
 export default Component;
