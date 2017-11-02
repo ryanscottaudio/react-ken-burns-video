@@ -38,6 +38,7 @@ export default {
         'node_modules/hyphenate-style-name/**',
         'node_modules/js-file-download/**',
         'node_modules/whammy/**',
+        'node_modules/react-style-proptype/**',
       ],
       namedExports: {
         'node_modules/react/react.js': [
