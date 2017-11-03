@@ -47,12 +47,12 @@ const startingPosition = {
 
 const startingArea = 10000;
 
-const containerMargin = 10;
+const containerMargin = 5;
 const containerStyle = {
   position: 'relative',
-  height: `calc(100% - ${containerMargin * 2}px)`,
+  height: '100%',
   width: `calc(50% - ${containerMargin}px)`,
-  margin: containerMargin,
+  margin: `0 ${containerMargin}px`,
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
@@ -346,7 +346,7 @@ class Component extends React.Component {
           ref={node => (this.imageContainerElement = node)}
           style={{
             ...containerStyle,
-            marginRight: 0,
+            marginLeft: 0,
           }}
         >
           <div style={{ position: 'relative' }}>
@@ -388,7 +388,7 @@ class Component extends React.Component {
         <div
           style={{
             ...containerStyle,
-            marginLeft: 0,
+            marginRight: 0,
           }}
         >
           {boxNames.map(order => (
@@ -398,12 +398,13 @@ class Component extends React.Component {
               ref={node => (this.previewContainers[order] = node)}
               style={{
                 position: 'relative',
-                height: `calc(100% - ${containerMargin * 2}px)`,
-                width: `calc(50% - ${containerMargin * 2}px)`,
+                height: '100%',
+                width: `calc(50% - ${containerMargin}px)`,
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                margin: containerMargin,
+                marginRight: order === 'start' ? containerMargin : undefined,
+                marginLeft: order === 'end' ? containerMargin : undefined,
                 ...previewPaneStyle,
               }}
             >
