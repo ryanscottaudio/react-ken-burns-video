@@ -2,7 +2,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Component from '../index';
+import { Component } from '../index';
 
 class Wrapper extends React.Component {
   constructor(props) {

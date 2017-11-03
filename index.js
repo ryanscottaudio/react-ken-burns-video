@@ -414,7 +414,7 @@ class Component extends React.Component {
                     position: 'absolute',
                     top: 0,
                     left: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    backgroundColor: order === 'start' ? 'rgba(0, 128, 0, 0.75)' : 'rgba(255, 0, 0, 0.75)',
                     color: 'white',
                     fontSize: 24,
                     padding: '10px',
