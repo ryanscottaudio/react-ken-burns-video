@@ -451,6 +451,4 @@ Component.propTypes = {
   previewPaneLabelStyle: stylePropType,
 };
 
-export default Component;
-
-export { renderVideo };
+export { Component, renderVideo };
