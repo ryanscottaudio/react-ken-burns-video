@@ -1,10 +1,37 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import stylePropType from 'react-style-proptype';
-import compileVideo from './compile-video';
+import renderVideo from './render-video';
 import Box from './components/box';
 
-const getSize = ({ area, aspectRatio }) => {
+const boxNames = ['start', 'end'];
+
+const getElementSize = ({
+  element: {
+    width: elementWidth, height: elementHeight,
+  },
+  container: {
+    width: maxWidth, height: maxHeight,
+  },
+}) => {
+  const aspectRatio = elementWidth / elementHeight;
+  const maxAspectRatio = maxWidth / maxHeight;
+
+  let width = maxWidth;
+  let height = maxHeight;
+  if (maxAspectRatio > aspectRatio) {
+    width = maxHeight * aspectRatio;
+  } else if (maxAspectRatio < aspectRatio) {
+    height = maxWidth / aspectRatio;
+  }
+
+  return {
+    width,
+    height,
+  };
+};
+
+const getBoxSize = ({ area, aspectRatio }) => {
   const height = Math.sqrt(area / aspectRatio);
 
   return {
@@ -18,7 +45,18 @@ const startingPosition = {
   y: 0,
 };
 
-const startingArea = 50000;
+const startingArea = 20000;
+
+const containerMargin = 10;
+const containerStyle = {
+  position: 'relative',
+  height: `calc(100% - ${containerMargin * 2}px)`,
+  width: `calc(50% - ${containerMargin}px)`,
+  margin: containerMargin,
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+};
 
 class Component extends React.Component {
   constructor(props) {
@@ -38,25 +76,25 @@ class Component extends React.Component {
       imageLoaded: false,
       renderingVideo: false,
     };
+    this.previewContainers = {};
     this.previewCanvases = {};
 
     this.setState = this.setState.bind(this);
-    this.getImageSizeRatio = this.getImageSizeRatio.bind(this);
+    this.setElementSizes = this.setElementSizes.bind(this);
     this.getActualBoxCoords = this.getActualBoxCoords.bind(this);
     this.drawPreviews = this.drawPreviews.bind(this);
+    this.getBoxPositions = this.getBoxPositions.bind(this);
+    this.renderVideo = this.renderVideo.bind(this);
     this.onResize = this.onResize.bind(this);
     this.onBoxDrag = this.onBoxDrag.bind(this);
     this.onBoxResize = this.onBoxResize.bind(this);
   }
 
   componentDidMount() {
-    const { setState, imageElement, onResize, getImageSizeRatio } = this;
+    const { imageElement, onResize, setElementSizes } = this;
 
     imageElement.onload = () => {
-      setState({
-        imageLoaded: true,
-        imageSizeRatio: getImageSizeRatio(),
-      });
+      setElementSizes(true);
     };
 
     window.addEventListener('resize', onResize);
@@ -68,13 +106,14 @@ class Component extends React.Component {
       state: { imageLoaded, renderingVideo },
       setState,
       drawPreviews,
+      setElementSizes,
       imageElement,
     } = this;
 
     if (imageSrc !== oldImageSrc) {
       setState({ imageLoaded: false });
       imageElement.onload = () => {
-        setState({ imageLoaded: true });
+        setElementSizes(true);
       };
     } else if (imageLoaded && !renderingVideo) {
       drawPreviews();
@@ -86,12 +125,7 @@ class Component extends React.Component {
   }
 
   onResize() {
-    const { state: { imageSizeRatio }, getImageSizeRatio } = this;
-    const idealImageSizeRatio = getImageSizeRatio();
-
-    if (idealImageSizeRatio !== imageSizeRatio) {
-      this.setState({ imageSizeRatio: idealImageSizeRatio });
-    }
+    this.setElementSizes();
   }
 
   onBoxDrag(order, position) {
@@ -115,10 +149,54 @@ class Component extends React.Component {
     } });
   }
 
-  getImageSizeRatio() {
-    const { clientWidth, naturalWidth } = this.imageElement;
+  setElementSizes(initialImageLoad) {
+    const {
+      props: { width: previewWidth, height: previewHeight },
+      imageElement,
+      imageContainerElement,
+      previewContainers,
+      previewCanvases,
+      state: { imageSizeRatio, imageLoaded },
+      setState,
+    } = this;
+    const { naturalWidth, naturalHeight } = imageElement;
 
-    return clientWidth / naturalWidth;
+    const { width: imageWidth, height: imageHeight } = getElementSize({
+      element: {
+        width: naturalWidth,
+        height: naturalHeight,
+      },
+      container: {
+        width: imageContainerElement.offsetWidth,
+        height: imageContainerElement.offsetHeight,
+      },
+    });
+
+    boxNames.forEach((order) => {
+      const { width: previewCanvasWidth, height: previewCanvasHeight } = getElementSize({
+        element: {
+          width: previewWidth,
+          height: previewHeight,
+        },
+        container: {
+          width: previewContainers[order].offsetWidth,
+          height: previewContainers[order].offsetHeight,
+        },
+      });
+
+      previewCanvases[order].style.width = previewCanvasWidth;
+      previewCanvases[order].style.height = previewCanvasHeight;
+    });
+
+    imageElement.style.width = imageWidth;
+    imageElement.style.height = imageHeight;
+    const idealImageSizeRatio = imageWidth / naturalWidth;
+    if (idealImageSizeRatio !== imageSizeRatio || initialImageLoad) {
+      setState({
+        imageLoaded: initialImageLoad ? true : imageLoaded,
+        imageSizeRatio: imageWidth / naturalWidth,
+      });
+    }
   }
 
   getActualBoxCoords({ x, y, width, height }) {
@@ -129,6 +207,25 @@ class Component extends React.Component {
       y: y / imageSizeRatio,
       width: width / imageSizeRatio,
       height: height / imageSizeRatio,
+    };
+  }
+
+  getBoxPositions() {
+    const {
+      props: { width, height },
+      state: { start, end },
+      getActualBoxCoords,
+    } = this;
+
+    return {
+      start: getActualBoxCoords({
+        ...start.position,
+        ...getBoxSize({ area: start.area, aspectRatio: width / height }),
+      }),
+      end: getActualBoxCoords({
+        ...end.position,
+        ...getBoxSize({ area: end.area, aspectRatio: width / height }),
+      }),
     };
   }
 
@@ -144,11 +241,14 @@ class Component extends React.Component {
       getActualBoxCoords,
     } = this;
 
-    ['start', 'end'].forEach((order) => {
+    boxNames.forEach((order) => {
       const canvas = previewCanvases[order];
 
       const { position: { x, y }, area } = state[order];
-      const { height: boxHeight, width: boxWidth } = getSize({ area, aspectRatio: width / height });
+      const {
+        height: boxHeight,
+        width: boxWidth,
+      } = getBoxSize({ area, aspectRatio: width / height });
       const actualCoords = getActualBoxCoords({ x, y, width: boxWidth, height: boxHeight });
       canvas
         .getContext('2d')
@@ -169,34 +269,26 @@ class Component extends React.Component {
   renderVideo(cb) {
     const {
       props: { duration, framerate, imageSrc, width, height, sync },
-      state: { start, end },
-      getActualBoxCoords,
+      getBoxPositions,
       setState,
     } = this;
 
     setState({ renderingVideo: true, renderedVideoProgress: 0 });
 
-    compileVideo({
+    renderVideo({
+      ...getBoxPositions(),
       duration,
       framerate,
       imageSrc,
       width,
       height,
-      start: getActualBoxCoords({
-        ...start.position,
-        ...getSize({ area: start.area, aspectRatio: width / height }),
-      }),
-      end: getActualBoxCoords({
-        ...end.position,
-        ...getSize({ area: end.area, aspectRatio: width / height }),
-      }),
       sync,
       onProgress: (progress) => {
         setState({ renderedVideoProgress: progress });
       },
-      onDone: (file) => {
+      onDone: (error, file) => {
         setState({ renderingVideo: false });
-        cb(file);
+        cb(error, file);
       },
     });
   }
@@ -229,15 +321,17 @@ class Component extends React.Component {
 
       return progressIndicator
         ? progressIndicator(renderedVideoProgress)
-        : (<div style={{ height: 20, width: '100%' }}>
-          <div
-            style={{
-              backgroundColor: 'black',
-              height: '100%',
-              width: `${renderedVideoProgress * 100}%`,
-            }}
-          />
-        </div>);
+        : (
+          <div style={{ height: 20, width: '100%' }}>
+            <div
+              style={{
+                backgroundColor: 'black',
+                height: '100%',
+                width: `${renderedVideoProgress * 100}%`,
+              }}
+            />
+          </div>
+        );
     }
 
     return (
@@ -245,67 +339,91 @@ class Component extends React.Component {
         className={className}
         style={{
           display: 'flex',
-          alignItems: 'center',
           ...style,
         }}
       >
         <div
+          ref={node => (this.imageContainerElement = node)}
           style={{
-            height: 'calc(100% - 20px)',
-            margin: 10,
-            position: 'relative',
-            display: 'inline-flex',
-            alignItems: 'flex-start',
+            ...containerStyle,
+            marginRight: 0,
           }}
         >
-          <img
-            style={{ height: '100%' }}
-            src={imageSrc}
-            role='presentation'
-            ref={node => (this.imageElement = node)}
-          />
-          {['start', 'end'].map((order) => {
-            const { area, position } = state[order];
-
-            return (
-              <Box
-                key={order}
-                order={order}
-                size={getSize({ area, aspectRatio: width / height })}
-                position={position}
-                onDrag={(_, { x, y }) => onBoxDrag(order, { x, y })}
-                onResize={(_, __, ref, ___, newPosition) => onBoxResize(order, {
-                  ...newPosition,
-                  width: ref.offsetWidth,
-                  height: ref.offsetHeight,
-                })}
-              />
-            );
-          })}
-        </div>
-        <div style={{ flex: 1 }}>
-          {['start', 'end'].map(order => (
+          <div style={{ position: 'relative' }}>
+            <img
+              src={imageSrc}
+              role='presentation'
+              ref={node => (this.imageElement = node)}
+            />
             <div
-              key={order} className={previewPaneClassName} style={{
-                display: 'inline-block',
-                width: 'calc(50% - 20px)',
-                margin: 10,
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+              }}
+            >
+              {boxNames.map((order) => {
+                const { area, position } = state[order];
+
+                return (
+                  <Box
+                    key={order}
+                    order={order}
+                    size={getBoxSize({ area, aspectRatio: width / height })}
+                    position={position}
+                    onDrag={(_, { x, y }) => onBoxDrag(order, { x, y })}
+                    onResize={(_, __, ref, ___, newPosition) => onBoxResize(order, {
+                      ...newPosition,
+                      width: ref.offsetWidth,
+                      height: ref.offsetHeight,
+                    })}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <div
+          style={{
+            ...containerStyle,
+            marginLeft: 0,
+          }}
+        >
+          {boxNames.map(order => (
+            <div
+              key={order}
+              className={previewPaneClassName}
+              ref={node => (this.previewContainers[order] = node)}
+              style={{
+                position: 'relative',
+                height: `calc(100% - ${containerMargin * 2}px)`,
+                width: `calc(50% - ${containerMargin * 2}px)`,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                margin: containerMargin,
                 ...previewPaneStyle,
               }}
             >
-              <div className={previewPaneLabelClassName} style={previewPaneLabelStyle}>
-                {order === 'start' ? 'Start' : 'End'}
-              </div>
-              <div
-                style={{
-                  position: 'relative',
-                  width: '100%',
-                  height: 0,
-                  paddingBottom: `${100 * (height / width)}%`,
-                }}
-              >
+              <div style={{ position: 'relative' }}>
+                <div
+                  className={previewPaneLabelClassName}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    color: 'white',
+                    fontSize: 24,
+                    padding: '10px',
+                    ...previewPaneLabelStyle,
+                  }}
+                >
+                  {order === 'start' ? 'Start' : 'End'}
+                </div>
                 <canvas
-                  style={{ position: 'absolute', width: '100%', height: '100%' }}
                   ref={node => (this.previewCanvases[order] = node)}
                 />
               </div>
@@ -321,7 +439,7 @@ Component.propTypes = {
   imageSrc: PropTypes.string.isRequired,
   width: PropTypes.number.isRequired,
   height: PropTypes.number.isRequired,
-  duration: PropTypes.number.isRequired,
+  duration: PropTypes.number,
   framerate: PropTypes.number,
   sync: PropTypes.bool,
   progressIndicator: PropTypes.func,
@@ -334,3 +452,5 @@ Component.propTypes = {
 };
 
 export default Component;
+
+export { renderVideo };

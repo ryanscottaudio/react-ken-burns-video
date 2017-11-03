@@ -11,7 +11,7 @@ const Box = ({
   onDrag,
 }) => (
   <Rnd
-    style={{ border: `3px dashed ${order === 'start' ? 'green' : 'red'}` }}
+    style={{ border: `5px dashed ${order === 'start' ? 'green' : 'red'}` }}
     bounds='parent'
     lockAspectRatio={true}
     size={size}

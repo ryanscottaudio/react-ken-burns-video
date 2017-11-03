@@ -34,7 +34,7 @@ class Wrapper extends React.Component {
     return ({ target: { value } }) => this.setState({ [prop]: Number(value) });
   }
 
-  onVideoRender(file) {
+  onVideoRender(error, file) {
     this.setState({ videoSrc: (window.URL || window.webkitURL).createObjectURL(file) });
   }
 
