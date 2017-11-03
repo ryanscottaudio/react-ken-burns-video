@@ -45,7 +45,7 @@ const startingPosition = {
   y: 0,
 };
 
-const startingArea = 20000;
+const startingArea = 10000;
 
 const containerMargin = 10;
 const containerStyle = {
