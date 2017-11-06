@@ -7,6 +7,8 @@ const Box = ({
   order,
   size,
   position,
+  maxWidth,
+  maxHeight,
   onResize,
   onDrag,
 }) => (
@@ -16,6 +18,8 @@ const Box = ({
     lockAspectRatio={true}
     size={size}
     position={position}
+    maxWidth={maxWidth}
+    maxHeight={maxHeight}
     onResize={onResize}
     onDrag={onDrag}
   />
@@ -31,6 +35,8 @@ Box.propTypes = {
     x: PropTypes.number,
     y: PropTypes.number,
   }).isRequired,
+  maxWidth: PropTypes.number.isRequired,
+  maxHeight: PropTypes.number.isRequired,
   onDrag: PropTypes.func.isRequired,
   onResize: PropTypes.func.isRequired,
 };
