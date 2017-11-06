@@ -169,6 +169,9 @@ class Component extends React.Component {
     imageElement.style.width = imageWidth;
     imageElement.style.height = imageHeight;
 
+    const newImageSizeRatio = imageWidth / naturalWidth;
+    const imageSizeRatioCoefficient = newImageSizeRatio / imageSizeRatio;
+
     boxNames.forEach((order) => {
       const { width: previewCanvasWidth, height: previewCanvasHeight } = getElementSize({
         element: {
@@ -200,12 +203,24 @@ class Component extends React.Component {
           ...state[order],
           size: { width: boxWidth, height: boxHeight },
         };
+      } else if (newImageSizeRatio !== imageSizeRatio) {
+        const { position, size } = state[order];
+
+        newState[order] = {
+          position: {
+            x: imageSizeRatioCoefficient * position.x,
+            y: imageSizeRatioCoefficient * position.y,
+          },
+          size: {
+            width: imageSizeRatioCoefficient * size.width,
+            height: imageSizeRatioCoefficient * size.height,
+          },
+        };
       }
     });
 
-    const newImageSizeRatio = imageWidth / naturalWidth;
     if (newImageSizeRatio !== imageSizeRatio || !imageLoaded) {
-      newState.imageSizeRatio = imageWidth / naturalWidth;
+      newState.imageSizeRatio = newImageSizeRatio;
       if (!imageLoaded) {
         newState.boxMaxWidth = naturalWidth;
         newState.boxMaxHeight = naturalHeight;
