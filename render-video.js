@@ -31,7 +31,7 @@ export default ({
 }) => {
   let canceled = false;
 
-  const totalFrames = duration * framerate;
+  const totalFrames = Math.round(duration * framerate);
   assert(totalFrames > 1, 'total number of frames in video must be more than 1');
 
   const startCorners = getCorners(start);
