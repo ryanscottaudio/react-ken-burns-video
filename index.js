@@ -31,21 +31,15 @@ const getElementSize = ({
   };
 };
 
-const getBoxSize = ({ area, aspectRatio }) => {
-  const height = Math.sqrt(area / aspectRatio);
-
-  return {
-    width: height * aspectRatio,
-    height,
-  };
-};
-
 const startingPosition = {
   x: 0,
   y: 0,
 };
 
-const startingArea = 10000;
+const startingSize = {
+  width: 100,
+  height: 100,
+};
 
 const containerMargin = 5;
 const containerStyle = {
@@ -65,13 +59,11 @@ class Component extends React.Component {
     this.state = {
       start: {
         position: startingPosition,
-        area: startingArea,
-        isDrawn: false,
+        size: startingSize,
       },
       end: {
         position: startingPosition,
-        area: startingArea,
-        isDrawn: false,
+        size: startingSize,
       },
       imageLoaded: false,
       renderingVideo: false,
@@ -95,7 +87,7 @@ class Component extends React.Component {
     const { imageElement, onResize, setElementSizes } = this;
 
     imageElement.onload = () => {
-      setElementSizes(true);
+      setElementSizes();
     };
 
     window.addEventListener('resize', onResize);
@@ -114,7 +106,7 @@ class Component extends React.Component {
     if (imageSrc !== oldImageSrc) {
       setState({ imageLoaded: false });
       imageElement.onload = () => {
-        setElementSizes(true);
+        setElementSizes();
       };
     } else if (imageLoaded && !renderingVideo) {
       drawPreviews();
@@ -135,7 +127,6 @@ class Component extends React.Component {
     setState({ [order]: {
       ...state[order],
       position,
-      isDrawn: false,
     } });
   }
 
@@ -144,23 +135,25 @@ class Component extends React.Component {
 
     setState({ [order]: {
       ...state[order],
-      area: width * height,
+      size: { width, height },
       position: { x, y },
-      isDrawn: false,
     } });
   }
 
-  setElementSizes(initialImageLoad) {
+  setElementSizes() {
     const {
       props: { width: previewWidth, height: previewHeight },
       imageElement,
       imageContainerElement,
       previewContainers,
       previewCanvases,
-      state: { imageSizeRatio, imageLoaded },
+      state,
       setState,
     } = this;
+    const { imageSizeRatio, imageLoaded } = state;
     const { naturalWidth, naturalHeight } = imageElement;
+
+    const newState = {};
 
     const { width: imageWidth, height: imageHeight } = getElementSize({
       element: {
@@ -172,6 +165,9 @@ class Component extends React.Component {
         height: imageContainerElement.offsetHeight,
       },
     });
+
+    imageElement.style.width = imageWidth;
+    imageElement.style.height = imageHeight;
 
     boxNames.forEach((order) => {
       const { width: previewCanvasWidth, height: previewCanvasHeight } = getElementSize({
@@ -187,16 +183,35 @@ class Component extends React.Component {
 
       previewCanvases[order].style.width = previewCanvasWidth;
       previewCanvases[order].style.height = previewCanvasHeight;
+
+      const { width: boxWidth, height: boxHeight } = getElementSize({
+        element: {
+          width: previewWidth,
+          height: previewHeight,
+        },
+        container: {
+          width: imageWidth,
+          height: imageHeight,
+        },
+      });
+
+      if (!imageLoaded) {
+        newState[order] = {
+          ...state[order],
+          size: { width: boxWidth, height: boxHeight },
+        };
+      }
     });
 
-    imageElement.style.width = imageWidth;
-    imageElement.style.height = imageHeight;
-    const idealImageSizeRatio = imageWidth / naturalWidth;
-    if (idealImageSizeRatio !== imageSizeRatio || initialImageLoad) {
-      setState({
-        imageLoaded: initialImageLoad ? true : imageLoaded,
-        imageSizeRatio: imageWidth / naturalWidth,
-      });
+    const newImageSizeRatio = imageWidth / naturalWidth;
+    if (newImageSizeRatio !== imageSizeRatio || !imageLoaded) {
+      newState.imageSizeRatio = imageWidth / naturalWidth;
+      if (!imageLoaded) {
+        newState.boxMaxWidth = naturalWidth;
+        newState.boxMaxHeight = naturalHeight;
+        newState.imageLoaded = true;
+      }
+      setState(newState);
     }
   }
 
@@ -213,7 +228,6 @@ class Component extends React.Component {
 
   getBoxPositions() {
     const {
-      props: { width, height },
       state: { start, end },
       getActualBoxCoords,
     } = this;
@@ -221,21 +235,17 @@ class Component extends React.Component {
     return {
       start: getActualBoxCoords({
         ...start.position,
-        ...getBoxSize({ area: start.area, aspectRatio: width / height }),
+        ...start.size,
       }),
       end: getActualBoxCoords({
         ...end.position,
-        ...getBoxSize({ area: end.area, aspectRatio: width / height }),
+        ...end.size,
       }),
     };
   }
 
   drawPreviews() {
     const {
-      props: {
-        width,
-        height,
-      },
       state,
       imageElement,
       previewCanvases,
@@ -245,12 +255,8 @@ class Component extends React.Component {
     boxNames.forEach((order) => {
       const canvas = previewCanvases[order];
 
-      const { position: { x, y }, area } = state[order];
-      const {
-        height: boxHeight,
-        width: boxWidth,
-      } = getBoxSize({ area, aspectRatio: width / height });
-      const actualCoords = getActualBoxCoords({ x, y, width: boxWidth, height: boxHeight });
+      const { position: { x, y }, size: { width, height } } = state[order];
+      const actualCoords = getActualBoxCoords({ x, y, width, height });
       canvas
         .getContext('2d')
         .drawImage(
@@ -303,8 +309,6 @@ class Component extends React.Component {
     const {
       props: {
         imageSrc,
-        width,
-        height,
         sync,
         progressIndicator,
         className,
@@ -371,14 +375,16 @@ class Component extends React.Component {
               }}
             >
               {boxNames.map((order) => {
-                const { area, position } = state[order];
+                const { size, position } = state[order];
 
                 return (
                   <Box
                     key={order}
                     order={order}
-                    size={getBoxSize({ area, aspectRatio: width / height })}
+                    size={size}
                     position={position}
+                    maxWidth={state.boxMaxWidth}
+                    maxHeight={state.boxMaxHeight}
                     onDrag={(_, { x, y }) => onBoxDrag(order, { x, y })}
                     onResize={(_, __, ref, ___, newPosition) => onBoxResize(order, {
                       ...newPosition,
