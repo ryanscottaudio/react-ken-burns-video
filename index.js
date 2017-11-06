@@ -87,7 +87,7 @@ class Component extends React.Component {
     const { imageElement, onResize, setElementSizes } = this;
 
     imageElement.onload = () => {
-      setElementSizes();
+      setElementSizes(true);
     };
 
     window.addEventListener('resize', onResize);
@@ -106,7 +106,7 @@ class Component extends React.Component {
     if (imageSrc !== oldImageSrc) {
       setState({ imageLoaded: false });
       imageElement.onload = () => {
-        setElementSizes();
+        setElementSizes(true);
       };
     } else if (imageLoaded && !renderingVideo) {
       drawPreviews();
@@ -140,7 +140,7 @@ class Component extends React.Component {
     } });
   }
 
-  setElementSizes() {
+  setElementSizes(initialImageLoad) {
     const {
       props: { width: previewWidth, height: previewHeight },
       imageElement,
@@ -150,7 +150,7 @@ class Component extends React.Component {
       state,
       setState,
     } = this;
-    const { imageSizeRatio, imageLoaded } = state;
+    const { imageSizeRatio } = state;
     const { naturalWidth, naturalHeight } = imageElement;
 
     const newState = {};
@@ -198,7 +198,7 @@ class Component extends React.Component {
         },
       });
 
-      if (!imageLoaded) {
+      if (initialImageLoad) {
         newState[order] = {
           ...state[order],
           size: { width: boxWidth, height: boxHeight },
@@ -219,12 +219,12 @@ class Component extends React.Component {
       }
     });
 
-    if (newImageSizeRatio !== imageSizeRatio || !imageLoaded) {
+    if (newImageSizeRatio !== imageSizeRatio || initialImageLoad) {
       newState.imageSizeRatio = newImageSizeRatio;
-      if (!imageLoaded) {
+      if (initialImageLoad) {
+        newState.imageLoaded = true;
         newState.boxMaxWidth = naturalWidth;
         newState.boxMaxHeight = naturalHeight;
-        newState.imageLoaded = true;
       }
       setState(newState);
     }
