@@ -223,8 +223,8 @@ class Component extends React.Component {
       newState.imageSizeRatio = newImageSizeRatio;
       if (initialImageLoad) {
         newState.imageLoaded = true;
-        newState.boxMaxWidth = naturalWidth;
-        newState.boxMaxHeight = naturalHeight;
+        newState.boxMaxWidth = imageWidth;
+        newState.boxMaxHeight = imageHeight;
       }
       setState(newState);
     }
