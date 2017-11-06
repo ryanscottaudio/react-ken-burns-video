@@ -29,6 +29,8 @@ export default ({
   onProgress,
   onDone,
 }) => {
+  let canceled = false;
+
   try {
     const totalFrames = duration * framerate;
     assert(totalFrames > 1, 'total number of frames in video must be more than 1');
@@ -80,6 +82,10 @@ export default ({
         onDone(null, fromImageArray(frames, framerate));
       } else {
         const asyncAnalyzeFrame = () => {
+          if (canceled) {
+            return;
+          }
+
           analyzeFrame(currentFrame);
           currentFrame += 1;
 
@@ -104,4 +110,8 @@ export default ({
   } catch (e) {
     onDone(e);
   }
+
+  const cancelVideoRender = () => (canceled = true);
+
+  return { cancelVideoRender };
 };
