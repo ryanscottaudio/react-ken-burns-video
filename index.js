@@ -84,6 +84,7 @@ class Component extends React.Component {
     this.getActualBoxCoords = this.getActualBoxCoords.bind(this);
     this.drawPreviews = this.drawPreviews.bind(this);
     this.getBoxPositions = this.getBoxPositions.bind(this);
+    this.cancelVideoRender = this.cancelVideoRender.bind(this);
     this.renderVideo = this.renderVideo.bind(this);
     this.onResize = this.onResize.bind(this);
     this.onBoxDrag = this.onBoxDrag.bind(this);
@@ -266,6 +267,11 @@ class Component extends React.Component {
     });
   }
 
+  cancelVideoRender() {
+    const { cancelVideoRender } = this.state;
+    if (cancelVideoRender) cancelVideoRender();
+  }
+
   renderVideo(cb) {
     const {
       props: { duration, framerate, imageSrc, width, height, sync },
@@ -273,9 +279,7 @@ class Component extends React.Component {
       setState,
     } = this;
 
-    setState({ renderingVideo: true, renderedVideoProgress: 0 });
-
-    renderVideo({
+    const { cancelVideoRender } = renderVideo({
       ...getBoxPositions(),
       duration,
       framerate,
@@ -291,6 +295,8 @@ class Component extends React.Component {
         cb(error, file);
       },
     });
+
+    setState({ renderingVideo: true, renderedVideoProgress: 0, cancelVideoRender });
   }
 
   render() {
